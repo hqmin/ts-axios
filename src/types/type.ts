@@ -13,5 +13,22 @@ export interface AxiosRequestConfig {
   method?: Method
   url: string
   data?: any
-  params?: any
+  params?: any,
+  headers?: any,
+  responseType?: XMLHttpRequestResponseType
+}
+
+// 客户端接收到的响应数据类型
+export interface AxiosResponse {
+  data: any // 返回的数据
+  status: number // http状态码
+  statusText: string // 状态消息
+  headers: any // 响应头
+  config: AxiosRequestConfig // 请求配置对象
+  request: any // 请求的XML对象实例
+}
+
+// 定义axios函数返回的对象类型，是一个promise对象
+export interface AxiosPromise extends Promise<AxiosResponse>{
+
 }

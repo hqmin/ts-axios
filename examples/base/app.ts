@@ -60,7 +60,7 @@ import axios from '../../src/index'
 //     bar: 'baz'
 //   }
 // })
-//
+
 // axios({
 //   method: 'post',
 //   url: '/base/post',
@@ -89,8 +89,8 @@ import axios from '../../src/index'
 //     b: 2
 //   }
 // })
-
-
+//
+//
 // const paramsString = 'q=URLUtils.searchParams&topic=api'
 // const searchParams = new URLSearchParams(paramsString)
 //
