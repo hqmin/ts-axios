@@ -1,16 +1,23 @@
 // 处理AJAX请求逻辑
 import { AxiosRequestConfig, AxiosResponse, AxiosPromise } from './types/type'
 import { parseHeaders } from './helpers/headers'
+import { createError } from './helpers/error'
 
 export function xhr(config: AxiosRequestConfig): AxiosPromise {
-  return new Promise((resolve) => {
-    const {method = 'get', url, data = null, headers, responseType} = config;
+  return new Promise((resolve, reject) => {
+    const {method = 'get', url, data = null,
+      headers, responseType, timeout} = config;
 
     let request = new XMLHttpRequest();
 
     // 设置响应数据的类型
     if (responseType) {
       request.responseType = responseType;
+    }
+
+    // 设置请求超时时间
+    if (timeout) {
+      request.timeout = timeout;
     }
 
     // 初始化请求
@@ -20,6 +27,11 @@ export function xhr(config: AxiosRequestConfig): AxiosPromise {
     request.onreadystatechange = function () {
       // readyState为4代表请求已经完成或失败
       if (request.readyState !== 4) {
+        return
+      }
+
+      // 请求完成前或请求出错，status的值是0
+      if (request.status === 0) {
         return
       }
 
@@ -37,8 +49,28 @@ export function xhr(config: AxiosRequestConfig): AxiosPromise {
         request
       };
 
-      resolve(response);
+      handleResponse(response);
     };
+
+    // 当请求遇到错误时,例如网络异常，将触发error事件
+    request.onerror = function handleError() {
+      reject(createError('Network Error!', config, null, request));
+    };
+
+    // 当请求超时，会触发timeout事件
+    request.ontimeout = function handleTimeout() {
+      reject(createError(`Timeout of ${timeout} ms exceeded.`, config, 'ECONNABORTED', request));
+    };
+
+    // 对于一个正常的请求，往往会返回 200-300 之间的 HTTP 状态码，对于不在这个区间的状态码，
+    // 我们也把它们认为是一种错误的情况做处理
+    function handleResponse(res: AxiosResponse): void {
+      if (res.status >= 200 && res.status < 300) {
+        resolve(res);
+      } else {
+        reject(createError(`Request failed with status code ${res.status}`, config, null, request, res));
+      }
+    }
 
     // 处理headers
     Object.keys(headers).forEach(key => {
